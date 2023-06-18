@@ -1,0 +1,32 @@
+{
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/luistar15/lustra"
+		}
+	],
+	"require": {
+		"php": "^8.1",
+		"luistar15/lustra": "dev-develop"
+	},
+	"require-dev": {
+		"phpstan/phpstan": "^1.10",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"wptrt/wpthemereview": "^0.2"
+	},
+	"autoload": {
+		"psr-4": {
+			"Site\\": "src/Site"
+		}
+	},
+	"scripts": {
+		"analyze": "./vendor/bin/phpstan analyze -l 7 -c ./.phpstan/config.neon src",
+		"standards:check": "./vendor/bin/phpcs --standard=./.phpcs/ruleset.xml",
+		"standards:fix": "./vendor/bin/phpcbf --standard=./.phpcs/ruleset.xml"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}
