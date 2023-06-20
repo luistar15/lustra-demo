@@ -5,7 +5,7 @@ header( 'Content-Type: text/html; charset=UTF-8', true );
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<base href="<?=$config['site_base']?>">
+	<base href="<?=$config->get( 'site_base' )?>">
 	<title><?=e($page_title)?></title>
 	<?=$page->buildHead()?>
 </head>

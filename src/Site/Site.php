@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Site;
 
 
+use Lustra\Config;
 use Lustra\Web\App;
 use Lustra\Web\Router\RouteNotFoundException;
 
@@ -33,7 +34,7 @@ class Site extends App {
 
 	public function initializeTemplateData() : array {
 		return [
-			'config'   => $this->container->get( 'config' ),
+			'config'   => $this->container->get( Config::class ),
 			'router'   => $this->router,
 			'page'     => $this->container->get( Page::class ),
 			'page_tpl' => $this->getTemplatePath( $this->route['name'] ),
@@ -107,8 +108,11 @@ class Site extends App {
 		array &$data = null
 	) : void {
 
-		if ( $this->container->get( 'config' )['debug'] ) {
+		$config = $this->container->get( Config::class );
+
+		if ( $config->get( 'debug' ) ) {
 			$this->addDebugbarInfo(
+				$config,
 				$this->container->get( Page::class ),
 				$this->container->get( DebugBar::class ),
 			);
@@ -119,9 +123,17 @@ class Site extends App {
 
 
 	private function addDebugbarInfo(
+		Config $config,
 		Page $page,
 		DebugBar $debugbar,
 	) : void {
+
+		$debugbar->addCollector(
+			new ConfigCollector(
+				$config->getDebugInfo(),
+				'config'
+			)
+		);
 
 		$debugbar->addCollector(
 			new ConfigCollector(

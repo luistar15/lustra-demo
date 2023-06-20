@@ -1,4 +1,5 @@
 /var/cache/
 /var/log/
 /vendor/
+/config/config.*.ini
 /public/debugbar/

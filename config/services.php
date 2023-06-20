@@ -1,6 +1,7 @@
 <?php
 
 use Lustra\Container;
+use Lustra\Config;
 use Lustra\DB\DBAL;
 
 use Site\Page;
@@ -17,18 +18,41 @@ use DebugBar\DataCollector\PDO\PDOCollector;
 
 
 $container->add(
-	'config',
-	array_merge(
-		require APP_DIR . '/config/config.base.php',
-		require APP_DIR . sprintf(
-			'/config/config.%s.php',
-			getenv( 'APP_ENV' ) ?: 'dev'
-		)
-	)
+	Config::class,
+	function () : Config {
+		$config = new Config();
+
+		$config->loadIni(
+			APP_DIR . '/config/config.ini'
+		);
+
+		$config->loadIni(
+			sprintf(
+				APP_DIR . '/config/config.%s.ini',
+				getenv( 'APP_ENV' ) ?: 'dev'
+			)
+		);
+
+		$config->loadEnv(
+			[
+				'global' => [
+					'APP_ENV' => 'app_env',
+				],
+			]
+		);
+
+		$replaces = [
+			'APP_DIR' => APP_DIR,
+		];
+
+		$config->replacePlaceholders( $replaces );
+
+		return $config;
+	}
 );
 
 
-if ( $container->get( 'config' )['debug'] ) {
+if ( $container->get( Config::class )->get( 'debug' ) ) {
 	$container->add(
 		DebugBar::class,
 		function () : DebugBar {
@@ -45,19 +69,21 @@ if ( $container->get( 'config' )['debug'] ) {
 $container->add(
 	DBAL::class,
 	function ( Container $container ) : DBAL {
-		$pdo = new DBAL( ...$container->get( 'config' )['db'] );
+		$config = $container->get( Config::class );
 
-		if ( $container->get( 'config' )['debug'] ) {
-			$pdo->connect();
+		$dbal = new DBAL( $config->get( 'database' ) );
 
-			$traceable_pdo = new TraceablePDO( $pdo );
+		if ( $config->get( 'debug' ) ) {
+			$dbal->connect();
+
+			$traceable_pdo = new TraceablePDO( $dbal );
 
 			$container->get( DebugBar::class )->addCollector(
 				new PDOCollector( $traceable_pdo )
 			);
 		}
 
-		return $pdo;
+		return $dbal;
 	}
 );
 

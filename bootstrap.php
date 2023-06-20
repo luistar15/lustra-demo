@@ -7,6 +7,7 @@ use Site\Site;
 
 use Lustra\ErrorHandler;
 use Lustra\Container;
+use Lustra\Config;
 use Lustra\Web\Router\RouterFactory;
 
 use DebugBar\DebugBar;
@@ -28,14 +29,17 @@ $container = new Container();
 
 require APP_DIR . '/config/services.php';
 
-$debug = $container->get( 'config' )['debug'];
+$config = $container->get( Config::class );
 
-$error_handler->setup( $debug, APP_DIR . '/var/log/error.log' );
+$error_handler->setup(
+	$config->get( 'debug' ),
+	APP_DIR . '/var/log/error.log'
+);
 
 
 // ------------------------
 
-if ( $debug ) {
+if ( $config->get( 'debug' ) ) {
 	$container->get( DebugBar::class );
 }
 
@@ -43,7 +47,7 @@ if ( $debug ) {
 // ------------------------
 
 $router = RouterFactory::build(
-	$container->get( 'config' )['site_base'],
+	$config->get( 'site_base' ),
 	APP_DIR . '/config/routes.php',
 	APP_DIR . '/var/cache/routes.cache.php'
 );
