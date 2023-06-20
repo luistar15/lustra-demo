@@ -9,15 +9,33 @@ namespace Site;
 use Lustra\Web\App;
 use Lustra\Web\Router\RouteNotFoundException;
 
+use DebugBar\DebugBar;
+use DebugBar\DataCollector\ConfigCollector;
+use DebugBar\DataCollector\PhpInfoCollector;
+use DebugBar\DataCollector\RequestDataCollector;
+
 use Throwable;
 
 
 class Site extends App {
 
+	public function setup() : void {
+		$this->setupPage( $this->container->get( Page::class ) );
+	}
+
+
+	public function setupPage( Page $page ) : void {
+		$page->addMeta( [ 'charset' => 'UTF-8' ] );
+		$page->addMeta( [ 'name' => 'viewport', 'content' => 'width=device-width, initial-scale=1' ] );
+		$page->addCss( 'https://cdn.jsdelivr.net/gh/kimeiga/bahunya/dist/bahunya.min.css' );
+	}
+
+
 	public function initializeTemplateData() : array {
 		return [
-			'router'   => $this->router,
 			'config'   => $this->container->get( 'config' ),
+			'router'   => $this->router,
+			'page'     => $this->container->get( Page::class ),
 			'page_tpl' => $this->getTemplatePath( $this->route['name'] ),
 		];
 	}
@@ -52,6 +70,8 @@ class Site extends App {
 	) : void {
 
 		$messages = [
+			400 => 'Bad Request',
+			401 => 'Unauthorized',
 			403 => 'Forbidden',
 			404 => 'Not Found',
 			500 => 'Internal Server Error',
@@ -76,9 +96,67 @@ class Site extends App {
 
 		ob_clean();
 
-		$this->render( 'error', $tpl_data );
+		$this->render( [ "error-{$http_status}", 'error' ], $tpl_data );
 
 		exit;
+	}
+
+
+	public function render(
+		string|array $path,
+		array &$data = null
+	) : void {
+
+		if ( $this->container->get( 'config' )['debug'] ) {
+			$this->addDebugbarInfo(
+				$this->container->get( Page::class ),
+				$this->container->get( DebugBar::class ),
+			);
+		}
+
+		parent::render( $path, $data );
+	}
+
+
+	private function addDebugbarInfo(
+		Page $page,
+		DebugBar $debugbar,
+	) : void {
+
+		$debugbar->addCollector(
+			new ConfigCollector(
+				$this->container->getDebugInfo(),
+				'container'
+			)
+		);
+
+		$debugbar->addCollector(
+			new ConfigCollector(
+				$this->route,
+				'route'
+			)
+		);
+
+		$debugbar->addCollector(
+			new ConfigCollector(
+				$this->router->getDebugInfo(),
+				'router'
+			)
+		);
+
+		$debugbar->addCollector(
+			new RequestDataCollector()
+		);
+
+		$debugbar->addCollector(
+			new PhpInfoCollector()
+		);
+
+		$renderer = $debugbar->getJavascriptRenderer();
+		$renderer->setOptions( [ 'base_url' => 'debugbar' ] );
+
+		$page->addHeadContent( $renderer->renderHead() );
+		$page->addBodyContent( $renderer->render() );
 	}
 
 }

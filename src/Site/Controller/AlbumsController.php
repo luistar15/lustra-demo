@@ -27,6 +27,7 @@ class AlbumsController {
 
 		$tpl_data['albums'] = $album_model->getAlbums();
 
+		$app->setup();
 		$app->render( 'base', $tpl_data );
 	}
 
@@ -51,6 +52,7 @@ class AlbumsController {
 			$tpl_data['artist'] = $artist;
 			$tpl_data['tracks'] = $track_model->getTracksByAlbum( $album_id );
 
+			$app->setup();
 			$app->render( 'base', $tpl_data );
 
 		} catch ( RecordNotFoundException $e ) {

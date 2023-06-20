@@ -26,6 +26,7 @@ class HomeController {
 		$tpl_data['genres']  = $genre_model->getGenres( 10 );
 		$tpl_data['artists'] = $artist_model->getArtists( 10 );
 
+		$app->setup();
 		$app->render( 'base', $tpl_data );
 	}
 

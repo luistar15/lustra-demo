@@ -1,16 +1,16 @@
 <?php
 use function htmlspecialchars as e;
-header('Content-Type: text/html; charset=UTF-8');
+header( 'Content-Type: text/html; charset=UTF-8', true );
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<base href="<?=e($config['site_base'])?>">
+	<base href="<?=$config['site_base']?>">
 	<title><?=e($page_title)?></title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/kimeiga/bahunya/dist/bahunya.min.css">
+	<?=$page->buildHead()?>
 </head>
 <body>
 	<?php require $page_tpl; ?>
+	<?=$page->buildBody()?>
 </body>
 </html>

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 
 use Site\Site;
+
 use Lustra\ErrorHandler;
 use Lustra\Container;
 use Lustra\Web\Router\RouterFactory;
+
+use DebugBar\DebugBar;
 
 
 // ------------------------
@@ -28,6 +31,13 @@ require APP_DIR . '/config/services.php';
 $debug = $container->get( 'config' )['debug'];
 
 $error_handler->setup( $debug, APP_DIR . '/var/log/error.log' );
+
+
+// ------------------------
+
+if ( $debug ) {
+	$container->get( DebugBar::class );
+}
 
 
 // ------------------------

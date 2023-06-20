@@ -27,6 +27,7 @@ class GenresController {
 
 		$tpl_data['genres'] = $genre_model->getGenres();
 
+		$app->setup();
 		$app->render( 'base', $tpl_data );
 	}
 
@@ -50,6 +51,7 @@ class GenresController {
 			$tpl_data['artists'] = $artist_model->getArtistsByGenre( $genre_id );
 			$tpl_data['albums']  = $album_model->getAlbumsByGenre( $genre_id );
 
+			$app->setup();
 			$app->render( 'base', $tpl_data );
 
 		} catch ( RecordNotFoundException $e ) {

@@ -3,10 +3,17 @@
 use Lustra\Container;
 use Lustra\DB\DBAL;
 
+use Site\Page;
 use Site\Model\GenreModel;
 use Site\Model\ArtistModel;
 use Site\Model\AlbumModel;
 use Site\Model\TrackModel;
+
+use DebugBar\DebugBar;
+use DebugBar\DataCollector\MemoryCollector;
+use DebugBar\DataCollector\TimeDataCollector;
+use DebugBar\DataCollector\PDO\TraceablePDO;
+use DebugBar\DataCollector\PDO\PDOCollector;
 
 
 $container->add(
@@ -21,31 +28,65 @@ $container->add(
 );
 
 
+if ( $container->get( 'config' )['debug'] ) {
+	$container->add(
+		DebugBar::class,
+		function () : DebugBar {
+			$debugbar = new DebugBar();
+			$debugbar->addCollector( new TimeDataCollector() );
+			$debugbar->addCollector( new MemoryCollector() );
+
+			return $debugbar;
+		}
+	);
+}
+
+
 $container->add(
 	DBAL::class,
-	fn ( Container $c ) => new DBAL( ...$c->get( 'config' )['db'] )
+	function ( Container $container ) : DBAL {
+		$pdo = new DBAL( ...$container->get( 'config' )['db'] );
+
+		if ( $container->get( 'config' )['debug'] ) {
+			$pdo->connect();
+
+			$traceable_pdo = new TraceablePDO( $pdo );
+
+			$container->get( DebugBar::class )->addCollector(
+				new PDOCollector( $traceable_pdo )
+			);
+		}
+
+		return $pdo;
+	}
+);
+
+
+$container->add(
+	Page::class,
+	fn () : Page => new Page()
 );
 
 
 $container->add(
 	GenreModel::class,
-	fn ( Container $c ) => new GenreModel( $c->get( DBAL::class ) )
+	fn ( Container $c ) : GenreModel => new GenreModel( $c->get( DBAL::class ) )
 );
 
 
 $container->add(
 	ArtistModel::class,
-	fn ( Container $c ) => new ArtistModel( $c->get( DBAL::class ) )
+	fn ( Container $c ) : ArtistModel => new ArtistModel( $c->get( DBAL::class ) )
 );
 
 
 $container->add(
 	AlbumModel::class,
-	fn ( Container $c ) => new AlbumModel( $c->get( DBAL::class ) )
+	fn ( Container $c ) : AlbumModel => new AlbumModel( $c->get( DBAL::class ) )
 );
 
 
 $container->add(
 	TrackModel::class,
-	fn ( Container $c ) => new TrackModel( $c->get( DBAL::class ) )
+	fn ( Container $c ) : TrackModel => new TrackModel( $c->get( DBAL::class ) )
 );
